@@ -13,20 +13,18 @@
 
 #include "buzzer.h"
 
-// if running on pasta, define PASTA
+#include "sd_mmc.h"
+
+// if running on pasta, define PASTA to use the buzzer
 #define PASTA 0
 
-// Numbers of the LED in the strip
+// LED strip configuration
+
 #define LED_STRIP_LED_COUNT 1
 #define LED_STRIP_MEMORY_BLOCK_WORDS 1024 // this determines the DMA block size
-
-// GPIO assignment
 #define LED_STRIP_GPIO_PIN  48
-
-// 10MHz resolution, 1 tick = 0.1us (led strip needs a high resolution)
 #define LED_STRIP_RMT_RES_HZ  (10 * 1000 * 1000)
-
-static const char *TAG = "example";
+static const char *TAG = "main";
 
 led_strip_handle_t configure_led(void)
 {
@@ -62,7 +60,7 @@ TaskHandle_t rgb_task_handle;
 void rgb_task(void *pvParameter)
 {
     led_strip_handle_t led_strip = configure_led();
-    uint8_t red = 255, green = 0, blue = 0;
+    uint8_t red = 15, green = 0, blue = 0;
 
     while (1) {
         /* Set the LED pixel using RGB, then refresh */
@@ -83,12 +81,12 @@ void rgb_task(void *pvParameter)
             red++;
         }
 
-        vTaskDelay(pdMS_TO_TICKS(3));
+        vTaskDelay(pdMS_TO_TICKS(20));
     }
 }
 
 TaskHandle_t buzzer_task_handle;
-void buzzer_task(void *pvParameters)
+void buzzer_task(void *pvParameters) // buzz periodically
 {
     buzzer_init(41);
     while (1) 
@@ -108,13 +106,16 @@ void buzzer_task(void *pvParameters)
     }
 }    
 
+TaskHandle_t sd_task_handle;
 
 void app_main(void)
 {
     ESP_LOGI(TAG, "Start tasks");
     xTaskCreate(rgb_task, "rgb_task", 2048, NULL, 5, &rgb_task_handle);
-
     #if PASTA
     xTaskCreate(buzzer_task, "buzzer_task", 2048, NULL, 5, &buzzer_task_handle);
     #endif
+
+    xTaskCreate(sd_task, "sd_task", 1024 * 6, NULL, 5, &sd_task_handle);
+
 }
