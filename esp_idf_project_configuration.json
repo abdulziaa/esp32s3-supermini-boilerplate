@@ -8,7 +8,7 @@
       "sdkconfigFilePath": ""
     },
     "env": {},
-    "flashBaudRate": "",
+    "flashBaudRate": "2000000",
     "idfTarget": "",
     "monitorBaudRate": "",
     "openOCD": {
